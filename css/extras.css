@@ -1,0 +1,253 @@
+/* Extras/Add-ons styles */
+.extras-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 24px;
+  margin-top: 24px;
+}
+
+.extras-header {
+  margin-bottom: 20px;
+}
+
+.extras-title-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.extras-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.optional-badge {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.specials-banner {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.extras-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.extra-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.extra-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.extra-item.special {
+  background: #fef3c7;
+  border-color: #fbbf24;
+}
+
+.extra-item.special:hover {
+  background: #fef08a;
+}
+
+.extra-item-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.extra-item-info {
+  flex: 1;
+}
+
+.extra-item-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.extra-item-description {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.extra-item-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.extra-price-current {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.extra-price-original {
+  font-size: 12px;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.special-badge {
+  background: #dc2626;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.extra-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.extra-quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.extra-quantity-btn {
+  background: none;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.extra-quantity-btn:hover {
+  background: #f1f5f9;
+  color: #3b82f6;
+}
+
+.extra-quantity-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.extra-quantity-display {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.add-extra-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.add-extra-btn:hover {
+  background: #2563eb;
+}
+
+.add-extra-btn.added {
+  background: #059669;
+}
+
+.add-extra-btn.added:hover {
+  background: #047857;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .extras-title-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .extra-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .extra-item-image {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .extra-item-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .extra-item {
+    padding: 12px;
+  }
+  
+  .extra-quantity-controls {
+    gap: 4px;
+  }
+  
+  .extra-quantity-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+  }
+  
+  .add-extra-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
