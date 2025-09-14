@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/banner.css">
+  <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/modal.css">
+  <link rel="stylesheet" href="css/cart.css">
+  <link rel="stylesheet" href="css/checkout.css">
+  <link rel="stylesheet" href="css/extras.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <title>Weekly Meal Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <!-- Global environment variables -->
+  <script>
+    window.SUPABASE_URL = 'https://empuquakuqwseaiiscyz.supabase.co';
+    window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtcHVxdWFrdXF3c2VhaWlzY3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NDQwNjAsImV4cCI6MjA3MDUyMDA2MH0.Q8t9pwFgvJ8r_CeYZKYKxL1DVmis4roGMnoUcUAFbPk';
+    window.ENV = { WEBHOOK_URL: 'https://hook.us1.make.com/dor1d7xp8zn9smtw79wau6gyepf7g4ib' };
+  </script>
+
+  <!-- Warning Banner -->
+  <div id="warningBanner" class="warning-banner">
+    <div class="warning-content">
+      <span class="warning-icon">⚠️</span>
+      <span class="warning-message" id="warningMessage"></span>
+      <button class="warning-close" id="warningClose">✕</button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <div class="meal-plan-container">
+      <header class="header">
+        <div class="header-content">
+          <div class="greeting" id="greeting">
+            <!-- Dynamic greeting will be inserted here -->
+          </div>
+        </div>
+        <div class="order-notice">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          Orders must be placed by 5:00PM the day before.
+        </div>
+      </header>
+
+      <div class="calendar-container">
+        <div class="calendar-navigation">
+          <button id="prevWeek" class="nav-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <div class="weekdays" id="weekdays">
+            <!-- Weekdays will be generated here -->
+          </div>
+          <button id="nextWeek" class="nav-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="menu-container">
+        <div class="menu-header">
+          <h2>Today's Menu</h2>
+          <span id="selectedDate" class="selected-date"></span>
+        </div>
+        <div id="menuItems" class="menu-items">
+          <!-- Menu items will be generated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="#" class="nav-item active" data-tab="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+    <a href="#" class="nav-item" data-tab="browse">
+      <span class="nav-icon">🔍</span>
+      <span class="nav-label">Browse</span>
+    </a>
+    <a href="#" class="nav-item" data-tab="gift-cards">
+      <span class="nav-icon">🎁</span>
+      <span class="nav-label">Gift Cards</span>
+    </a>
+    <a href="#" class="nav-item" data-tab="dashboard">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a href="#" class="nav-item nav-cart" id="cartButton" data-tab="cart">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">Cart</span>
+      <span class="cart-count" id="cartCount" style="display: none;">0</span>
+    </a>
+  </nav>
+
+  <!-- Cart Overlay for Background Blur -->
+  <div id="cartOverlay" class="cart-overlay"></div>
+
+  <!-- Cart Summary Modal -->
+  <div class="cart-modal" id="cartModal">
+    <div class="cart-modal-content">
+      <div class="cart-header">
+        <h2>Order Summary</h2>
+        <button class="close-cart" id="closeCart">✕</button>
+      </div>
+      <div class="cart-items" id="cartItems">
+        <!-- Cart items will be generated here -->
+      </div>
+      
+      <!-- Add-Ons Section (hidden by default) -->
+      <div class="extras-section hidden" id="extrasSection">
+        <div class="extras-header">
+          <div class="extras-title-container">
+            <h2 class="extras-title">Add-Ons</h2>
+            <span class="optional-badge">Optional</span>
+          </div>
+        </div>
+        
+        <div class="specials-banner">
+          TODAY'S SPECIALS Save on selected items!
+        </div>
+        
+        <div class="extras-list" id="extrasList">
+          <!-- Extras will be generated here -->
+        </div>
+      </div>
+      
+      <div class="cart-footer">
+        <div class="cart-totals-section">
+          <div class="cart-totals-header">
+            <span class="cart-totals-icon">🧾</span>
+            <h3 class="cart-totals-title">Order Summary</h3>
+          </div>
+          
+          <div class="cart-subtotal">
+            <div class="cart-subtotal-label">
+              <span>💰</span>
+              <span>Subtotal</span>
+            </div>
+            <span class="cart-subtotal-value" id="cartSubtotal">$0.00</span>
+          </div>
+          
+          <div class="cart-tax">
+            <div class="cart-tax-label">
+              <span>📋</span>
+              <span>Tax (7% FL Sales Tax)</span>
+            </div>
+            <span class="cart-tax-value" id="cartTax">$0.00</span>
+          </div>
+          
+          <div class="cart-total">
+            <div class="cart-total-label">
+              <span>💳</span>
+              <span>Total Amount</span>
+            </div>
+            <span class="cart-total-value" id="cartTotal">$0.00</span>
+          </div>
+        </div>
+        
+        <div class="terms-disclaimer">
+          By continuing and checking out, you agree to Soriano Brothers Cuban Cuisine 
+          <a href="https://sorianobrotherscubancuisine.com/cantina/refund-policy.html" target="_blank" rel="noopener noreferrer">refund policy</a> 
+          and 
+          <a href="https://sorianobrotherscubancuisine.com/cantina/terms-and-conditions.html" target="_blank" rel="noopener noreferrer">terms and conditions</a>.
+        </div>
+        <button class="checkout-button secondary hidden" id="addMoreDishesButton">Add more dishes</button>
+        <button class="checkout-button" id="checkoutButton">Proceed to Checkout</button>
+        <button class="checkout-button hidden" id="proceedToPaymentButton">Proceed to Payment</button>
+        <button class="checkout-button secondary hidden" id="skipExtrasButton">No thanks, continue to checkout</button>
+  </div>
+
+  <!-- Restaurant Dashboard -->
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="dashboard-sidebar">
+      <div class="dashboard-header">
+        <div class="dashboard-logo">Soriano Brothers</div>
+        <div class="dashboard-subtitle">Restaurant Dashboard</div>
+      </div>
+      
+      <nav class="dashboard-nav">
+        <button class="dashboard-nav-item active" data-tab="pending">
+          <svg class="dashboard-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12,6 12,12 16,14"/>
+          </svg>
+          <span>Pending</span>
+        </button>
+        
+        <button class="dashboard-nav-item" data-tab="picked">
+          <svg class="dashboard-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"/>
+          </svg>
+          <span>Picked Up</span>
+        </button>
+        
+        <button class="dashboard-nav-item" data-tab="missed">
+          <svg class="dashboard-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <span>Missed</span>
+        </button>
+        
+        <button class="dashboard-nav-item" data-tab="history">
+          <svg class="dashboard-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>History</span>
+        </button>
+      </nav>
+      
+      <div class="dashboard-logout">
+        <button class="logout-button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="dashboard-main">
+      <!-- App Banner -->
+      <div id="app-banner" class="app-banner is-hidden"></div>
+      
+      <div class="dashboard-topbar">
+        <h1 class="dashboard-title">Orders Management</h1>
+        <div class="dashboard-actions">
+          <button class="refresh-button" onclick="Dashboard.refreshOrders()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Refresh Orders
+          </button>
+          <div class="dashboard-search-container">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input 
+                type="text" 
+                id="customerSearch" 
+                class="search-input" 
+                placeholder="Search by name, order number, or phone..."
+                autocomplete="off"
+              >
+              <button id="clearSearch" class="clear-search-btn" style="display: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div id="searchResults" class="search-results" style="display: none;">
+              <!-- Search results will be populated here -->
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-user-info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Restaurant Staff</span>
+        </div>
+      </div>
+      
+      <div class="dashboard-content">
+        <!-- Orders Section -->
+        <div class="customers-section">
+          <div class="customers-header">
+            <h2 class="customers-title">Recent Orders</h2>
+            <span class="customers-count">0 Orders</span>
+          </div>
+          <div class="customers-list">
+            <!-- Customer orders will be rendered here by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Customer Info Modal -->
+    <div class="customer-modal" id="customerModal">
+      <div class="customer-modal-content">
+        <div class="customer-modal-header">
+          <h3 class="customer-modal-title">Customer Information</h3>
+          <button class="customer-modal-close" id="customerModalClose">✕</button>
+        </div>
+        <div class="customer-details" id="customerDetails">
+          <!-- Customer details will be populated here -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Customer Order History Modal -->
+    <div class="customer-history-modal" id="customerHistoryModal">
+      <div class="customer-history-modal-content">
+        <div class="customer-history-modal-header">
+          <h3 class="customer-history-modal-title">Customer Order History</h3>
+          <button class="customer-history-modal-close" id="customerHistoryModalClose">✕</button>
+        </div>
+        <div class="customer-history-modal-body" id="customerHistoryModalBody">
+          <!-- Customer history details will be populated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div id="checkoutModal" class="checkout-modal">
+    <div class="checkout-container">
+      <div class="checkout-header">
+        <h2 class="checkout-title">Secure Checkout</h2>
+        <button class="close-checkout" aria-label="Close checkout">✕</button>
+      </div>
+      
+      <!-- Step 1: Customer Information -->
+      <div class="checkout-step customer-info-section">
+        <div class="form-group">
+          <label for="customerName" class="form-label">Full Name *</label>
+          <input type="text" id="customerName" class="form-input" placeholder="Enter your full name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="customerPhone" class="form-label">Phone Number *</label>
+          <input type="tel" id="customerPhone" class="form-input" placeholder="(555) 123-4567" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="customerEmail" class="form-label">Email Address *</label>
+          <input type="email" id="customerEmail" class="form-input" placeholder="your.email@example.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="card-element" class="form-label">Card Information *</label>
+          <div id="card-element" class="form-input stripe-card-element">
+            <!-- Stripe Elements will create form elements here -->
+          </div>
+          <div id="card-errors" class="error-message" style="display: none;"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="giftCardCode" class="form-label optional-label">Gift Card Code (Optional)</label>
+          <input type="text" id="giftCardCode" class="form-input optional" placeholder="Enter gift card code">
+        </div>
+        
+        <button id="payNowButton" class="pay-now-button">Pay Now</button>
+      </div>
+      
+      <!-- Step 2: Processing -->
+      <div class="checkout-step processing-section">
+        <div class="processing-spinner"></div>
+        <h3 class="processing-title">Processing Your Order</h3>
+        <p class="processing-message">Please wait while we securely process your payment and confirm your order. This may take a few moments.</p>
+      </div>
+      
+      <!-- Step 3: Confirmation -->
+      <div class="checkout-step confirmation-section">
+        <div class="confirmation-header">
+          <div class="confirmation-success">🎉</div>
+          <h3 class="confirmation-title">Your order has been placed!</h3>
+          <p class="confirmation-order-number">Order Number: <span id="confirmationOrderNumber" class="order-number">#SBC123456789</span></p>
+        </div>
+        
+        <div class="confirmation-details">
+          <div class="detail-section">
+            <h4>Customer Information</h4>
+            <div class="detail-row">
+              <span class="detail-label">Name:</span>
+              <span class="detail-value" id="confirmationCustomerName">John Doe</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value" id="confirmationCustomerEmail">john@example.com</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Phone:</span>
+              <span class="detail-value" id="confirmationCustomerPhone">(555) 123-4567</span>
+            </div>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Payment Information</h4>
+            <div class="detail-row">
+              <span class="detail-label">Card Used:</span>
+              <span class="detail-value" id="confirmationCardNumber">****-****-****-1234</span>
+            </div>
+          </div>
+          
+          <div class="detail-section">
+            <h4>Order Details</h4>
+            <div id="confirmationOrderItems">
+              <!-- Order items will be populated here -->
+            </div>
+            <div class="confirmation-totals">
+              <div class="total-row">
+                <span class="detail-label">Subtotal:</span>
+                <span class="detail-value" id="confirmationSubtotal">$0.00</span>
+              </div>
+              <div class="total-row">
+                <span class="detail-label">Tax (7%):</span>
+                <span class="detail-value" id="confirmationTax">$0.00</span>
+              </div>
+              <div class="total-row final-total">
+                <span class="detail-label">Total:</span>
+                <span class="detail-value" id="confirmationTotal">$0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="confirmation-actions">
+          <button id="sendEmailButton" class="send-email-button">Send transaction details to my email</button>
+          <button id="newOrderButton" class="new-order-button">Start New Order</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
